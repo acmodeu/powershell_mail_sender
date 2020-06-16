@@ -9,25 +9,35 @@ Get-Content ".\mail.conf" | Where-Object {$_.length -gt 0} | Where-Object {!$_.S
 
 }
 
+
 $emailSecurePass = ConvertTo-SecureString -String $emailPlainPass -AsPlainText -Force
 
 $cred = New-Object System.Management.Automation.PSCredential ($emailSmtpUser, $emailSecurePass)
 
 $UsersList = Import-Csv -Delimiter "|" -Path $mail_list
 
+
+
+
 FOREACH ($Person in $UsersList) {
+  
   
   $emailTo = $Person.email
   $fio = $Person.fio
-  $teams_login = $Person.login + "@domain.com"
+  $teams_login = $Person.login + "@pku.petrpku.ru"
   $pass_phrase = $Person.password
-    
-  $mail_template = [IO.File]::ReadAllText($mail_template)
-  $mail_body = Invoke-Expression """$mail_template"""
+  
+  
+  echo "sending email to $fio $emailTo"
+  
+  $mail_template_ready = [IO.File]::ReadAllText($mail_template)
+  #Read-Host -Prompt "Press Enter to continue"
+  $mail_body = Invoke-Expression """$mail_template_ready"""  
+  
     
   #Write-Host $mail_body
      
-  echo "sending email to $fio $emailTo"
+  
   Send-MailMessage -SmtpServer $emailSmtpServer -Credential $cred -UseSsl -From $emailFrom -To $emailTo -Subject $mail_subject -Body $mail_body -Attachments $attachment -Encoding "UTF8"
 
 }
